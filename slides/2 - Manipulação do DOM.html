@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 2 — Manipulação do DOM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#090b16;
+    --bg1:#0e1124;
+    --panel:#151a30;
+    --panel-2:#1b2240;
+    --code-bg:#0a0d1c;
+    --ink:#eef1ff;
+    --ink-soft:#c7cdec;
+    --muted:#8b93bc;
+    --line:rgba(255,255,255,.10);
+    --accent:#ff6b6b;            /* overridden per part via JS */
+    --display:'Poppins','Segoe UI',Roboto,Arial,sans-serif;
+    --sans:'Inter','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:'Consolas','SFMono-Regular','Courier New',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--sans);
+    background:var(--bg0);
+    color:var(--ink);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  #progress{
+    position:fixed;top:0;left:0;height:5px;width:0;
+    background:var(--accent);z-index:50;transition:width .3s ease,background .3s ease;
+    box-shadow:0 0 16px var(--accent);
+  }
+
+  /* ---------- stage / slides ---------- */
+  .slide{
+    position:absolute;inset:0;
+    display:none;
+    flex-direction:column;
+    padding:5.5vh 6vw 11vh;
+    background:linear-gradient(165deg,#0d1022,#090b15);
+    background-image:
+      linear-gradient(165deg,#0d1022,#090b15),
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,.04) 1px, transparent 0);
+    background-size:auto, 32px 32px;
+    overflow:hidden;
+    animation:fade .42s cubic-bezier(.2,.7,.2,1);
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(20px) scale(.99)}to{opacity:1;transform:none}}
+
+  .slide:not(.cover):not(.divider)::after{
+    content:"";position:absolute;top:-16%;right:-10%;
+    width:50vw;height:50vw;border-radius:50%;
+    background:var(--accent);opacity:.14;filter:blur(70px);
+    pointer-events:none;z-index:0;
+  }
+  .ghost{
+    position:absolute;top:3vh;right:4.5vw;z-index:1;
+    font-family:var(--display);font-weight:900;line-height:1;
+    font-size:clamp(5rem,13vw,11rem);color:var(--accent);opacity:.12;
+    pointer-events:none;letter-spacing:-.04em;
+  }
+  .kicker,h2.title,.body{position:relative;z-index:2}
+
+  .kicker{
+    display:inline-flex;align-items:center;gap:.55rem;align-self:flex-start;
+    background:rgba(255,255,255,.05);
+    background:color-mix(in srgb, var(--accent) 14%, transparent);
+    color:var(--accent);
+    border:1.5px solid rgba(255,255,255,.18);
+    border-color:color-mix(in srgb, var(--accent) 55%, transparent);
+    font-family:var(--display);font-weight:700;
+    font-size:clamp(.8rem,1vw,1.05rem);letter-spacing:.05em;text-transform:uppercase;
+    padding:.42rem 1rem;border-radius:999px;margin-bottom:1.1rem;
+  }
+  .kicker::before{content:"";width:.55rem;height:.55rem;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+
+  h2.title{
+    font-family:var(--display);font-weight:800;
+    font-size:clamp(2rem,4.2vw,3.4rem);line-height:1.06;letter-spacing:-.02em;
+    color:var(--ink);margin-bottom:1.5rem;max-width:26ch;
+  }
+
+  .body{flex:1;display:flex;flex-direction:column;gap:1.15rem;min-height:0;overflow:auto}
+  .cols{display:flex;gap:2.6rem;flex:1;min-height:0}
+  .col{flex:1;display:flex;flex-direction:column;gap:1.1rem;min-width:0}
+
+  p.lead{font-size:clamp(1.2rem,1.9vw,1.6rem);color:var(--ink-soft);line-height:1.5;font-weight:400}
+  p.lead b{color:#fff;font-weight:700}
+  p.lead i{color:var(--accent);font-style:normal;font-weight:600}
+  p.note{font-size:clamp(1rem,1.3vw,1.2rem);color:var(--muted);line-height:1.5}
+  p.note b{color:var(--ink)}
+
+  .big-idea{
+    background:rgba(255,255,255,.05);
+    background:color-mix(in srgb, var(--accent) 13%, transparent);
+    border:1.5px solid rgba(255,255,255,.16);
+    border-color:color-mix(in srgb, var(--accent) 42%, transparent);
+    color:var(--ink);border-radius:18px;
+    padding:1.3rem 1.6rem;font-size:clamp(1.15rem,1.9vw,1.6rem);line-height:1.45;font-weight:500;
+    box-shadow:0 16px 40px rgba(0,0,0,.4);
+  }
+  .big-idea strong{color:var(--accent);font-weight:800}
+  .big-idea b{color:#fff;font-weight:800}
+
+  ul.bullets{list-style:none;display:flex;flex-direction:column;gap:.85rem}
+  ul.bullets li{
+    position:relative;padding-left:2rem;
+    font-size:clamp(1.1rem,1.7vw,1.5rem);color:var(--ink-soft);line-height:1.4;
+  }
+  ul.bullets li::before{
+    content:"";position:absolute;left:0;top:.42em;width:.75rem;height:.75rem;
+    background:var(--accent);border-radius:4px;transform:rotate(45deg);box-shadow:0 0 10px var(--accent)
+  }
+  ul.bullets li b{color:#fff;font-weight:700}
+
+  /* ---------- code blocks (editor window) ---------- */
+  pre{
+    position:relative;background:var(--code-bg);color:var(--ink);
+    border-radius:16px;padding:3rem 1.5rem 1.3rem;
+    font-family:var(--mono);font-size:clamp(1rem,1.35vw,1.35rem);line-height:1.6;
+    overflow:auto;box-shadow:0 18px 44px rgba(0,0,0,.45);
+    border:1px solid rgba(255,255,255,.08);
+  }
+  pre::before{
+    content:"";position:absolute;top:16px;left:18px;width:54px;height:13px;
+    background:
+      radial-gradient(circle 6.5px at 6.5px 6.5px,#ff5f56 96%,transparent),
+      radial-gradient(circle 6.5px at 27px 6.5px,#ffbd2e 96%,transparent),
+      radial-gradient(circle 6.5px at 47.5px 6.5px,#27c93f 96%,transparent);
+  }
+  pre .tag{color:#7ee0c8}
+  pre .att{color:#ffd479}
+  pre .sel{color:#ff9ec4;font-weight:600}
+  pre .prop{color:#8ec9ff}
+  pre .val{color:#ffd479}
+  pre .com{color:#7b84b0;font-style:italic}
+  pre .pun{color:#aeb6df}
+  /* JS token colors */
+  pre .kw{color:#ff9ec4;font-weight:600}
+  pre .fn{color:#8ec9ff}
+  pre .str{color:#ffd479}
+  pre .num{color:#7ee0c8}
+  pre .propacc{color:#c9a4ff}
+
+  code.inline{
+    font-family:var(--mono);background:rgba(255,255,255,.08);color:#ffd479;
+    padding:.12em .45em;border-radius:7px;font-size:.92em;font-weight:600;
+    border:1px solid var(--line);
+  }
+
+  /* ---------- part divider ---------- */
+  .slide.divider{
+    background:
+      radial-gradient(60vw 60vw at 12% 10%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 60%),
+      radial-gradient(70vw 70vw at 100% 100%, rgba(120,80,255,.10), transparent 55%),
+      linear-gradient(160deg,#0f1430,#070912);
+    color:#fff;justify-content:center;
+  }
+  .slide.divider::before{
+    content:"";position:absolute;inset:0;
+    background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.05) 1px, transparent 0);
+    background-size:36px 36px;pointer-events:none;
+  }
+  .slide.divider .partnum{
+    position:relative;font-family:var(--display);font-weight:900;
+    font-size:clamp(4rem,12vw,9rem);color:var(--accent);line-height:.9;letter-spacing:-.03em;
+    text-shadow:0 0 60px var(--accent);
+  }
+  .slide.divider h2{
+    position:relative;font-family:var(--display);font-weight:800;
+    font-size:clamp(2.2rem,5.4vw,4.4rem);line-height:1.04;margin-top:.6rem;color:#fff;max-width:20ch;
+  }
+  .slide.divider .sub{
+    position:relative;color:var(--accent);font-size:clamp(1.1rem,1.7vw,1.5rem);
+    margin-top:1.1rem;letter-spacing:.04em;font-weight:600;
+  }
+
+  /* ---------- cover ---------- */
+  .slide.cover{
+    background:
+      radial-gradient(60vw 60vw at 85% 8%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 60%),
+      radial-gradient(60vw 60vw at 0% 100%, rgba(120,80,255,.14), transparent 55%),
+      linear-gradient(160deg,#0f1430,#070912);
+    color:#fff;justify-content:center;
+  }
+  .slide.cover::after{
+    content:"</>";position:absolute;right:4vw;bottom:-2vh;
+    font-family:var(--mono);font-weight:700;font-size:clamp(8rem,26vw,22rem);
+    color:var(--accent);opacity:.12;pointer-events:none;line-height:1;
+  }
+  .slide.cover .eyebrow{
+    position:relative;color:var(--accent);font-family:var(--display);font-weight:700;
+    letter-spacing:.2em;text-transform:uppercase;margin-bottom:1.2rem;font-size:clamp(.9rem,1.2vw,1.2rem);
+  }
+  .slide.cover h1{
+    position:relative;font-family:var(--display);font-weight:900;
+    font-size:clamp(2.6rem,7vw,5.6rem);line-height:1.02;letter-spacing:-.02em;max-width:20ch;
+  }
+  .slide.cover h1 em{color:var(--accent);font-style:normal}
+  .slide.cover .meta{position:relative;margin-top:2rem;color:var(--ink-soft);font-size:clamp(1rem,1.4vw,1.3rem);display:flex;gap:1.8rem;flex-wrap:wrap}
+  .slide.cover .meta span{display:flex;align-items:center;gap:.55rem}
+  .dot{width:.6rem;height:.6rem;border-radius:50%;background:var(--accent);display:inline-block;box-shadow:0 0 10px var(--accent)}
+
+  /* ---------- cards / chips ---------- */
+  .grid{display:grid;gap:1.1rem}
+  .grid.g2{grid-template-columns:1fr 1fr}
+  .grid.g3{grid-template-columns:repeat(3,1fr)}
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:1.1rem 1.3rem;box-shadow:0 10px 26px rgba(0,0,0,.32);
+  }
+  .card h3{font-family:var(--display);color:var(--accent);font-size:clamp(1.1rem,1.5vw,1.4rem);margin-bottom:.4rem;font-weight:700}
+  .card p{color:var(--muted);font-size:clamp(.95rem,1.2vw,1.15rem);line-height:1.4}
+
+  .pill{
+    display:inline-block;
+    background:rgba(255,255,255,.06);
+    background:color-mix(in srgb, var(--accent) 16%, transparent);
+    color:var(--accent);
+    border:1.5px solid rgba(255,255,255,.16);
+    border-color:color-mix(in srgb, var(--accent) 50%, transparent);
+    border-radius:999px;padding:.35rem 1.1rem;font-size:clamp(.95rem,1.2vw,1.15rem);font-weight:700;font-family:var(--display);
+  }
+  .pill.ok{background:rgba(34,197,94,.16);color:#4ade80;border-color:rgba(74,222,128,.5)}
+  .pill.bad{background:rgba(239,68,68,.16);color:#f87171;border-color:rgba(248,113,113,.5)}
+
+  /* color swatches */
+  .swatches{display:flex;flex-wrap:wrap;gap:1rem}
+  .sw{border-radius:14px;padding:1.2rem;min-width:160px;flex:1;color:#fff;font-weight:700;font-family:var(--display);font-size:1.2rem;box-shadow:0 12px 26px rgba(0,0,0,.4)}
+  .sw small{display:block;font-weight:400;opacity:.92;font-size:.9rem;margin-top:.35rem;font-family:var(--sans)}
+
+  /* color wheel */
+  .wheel{
+    width:min(38vh,300px);aspect-ratio:1;border-radius:50%;
+    background:conic-gradient(red,#ff8c00,gold,#9acd32,green,#00ced1,blue,#8a2be2,magenta,red);
+    box-shadow:0 16px 44px rgba(0,0,0,.5);position:relative;flex:none;margin:auto;
+  }
+  .wheel::after{content:"";position:absolute;inset:30%;border-radius:50%;background:var(--bg0)}
+
+  /* box model */
+  .boxmodel{display:flex;align-items:center;justify-content:center;flex:1}
+  .bm{background:#ffe39b;padding:30px;border-radius:10px;text-align:center;font-weight:800;color:#8a6d1a;position:relative;font-family:var(--display)}
+  .bm .lbl{position:absolute;top:5px;left:10px;font-size:.8rem;font-weight:800;opacity:.85}
+  .bm-border{background:#bfe5ff;padding:26px;border-radius:8px;color:#0f5e9c}
+  .bm-padding{background:#c8f3c8;padding:26px;border-radius:8px;color:#157a2e}
+  .bm-content{background:#11152a;color:#fff;padding:28px 40px;border-radius:6px;font-size:1.2rem}
+
+  /* font samples */
+  .fontsample{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem 1.3rem;display:flex;justify-content:space-between;align-items:baseline;gap:1rem;box-shadow:0 8px 22px rgba(0,0,0,.3)}
+  .fontsample .t{font-size:clamp(1.4rem,2.2vw,2rem);color:var(--ink);font-weight:600}
+  .fontsample .n{font-size:clamp(.85rem,1.1vw,1.05rem);color:var(--accent);font-family:var(--mono);flex:none;font-weight:600}
+
+  /* ---------- UI/UX mockups ---------- */
+  .demo{display:flex;gap:1rem;flex-wrap:wrap;align-items:stretch}
+  .demo-item{flex:1;min-width:150px;display:flex;flex-direction:column;align-items:center;gap:.8rem;
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.3rem .9rem;text-align:center;box-shadow:0 10px 26px rgba(0,0,0,.32)}
+  .demo-item span{color:var(--muted);font-size:clamp(.9rem,1.1vw,1.05rem);line-height:1.35}
+  .demo-item span b{color:var(--ink)}
+  .ui-btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;padding:.8rem 1.4rem;
+    border-radius:12px;font-weight:700;font-family:var(--display);font-size:clamp(1rem,1.2vw,1.15rem);border:none;color:#fff;cursor:default;
+    box-shadow:0 10px 22px rgba(0,0,0,.4)}
+  .ui-btn.ghost{background:transparent;border:1.6px solid var(--line);color:var(--ink-soft);box-shadow:none}
+  .ui-card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:1.4rem;
+    display:flex;flex-direction:column;gap:.7rem;flex:1;min-width:210px;box-shadow:0 20px 44px rgba(0,0,0,.45)}
+  .ui-card .logo{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-family:var(--display);font-size:1.4rem}
+  .ui-card h4{font-family:var(--display);font-size:clamp(1.2rem,1.6vw,1.5rem);color:var(--ink);font-weight:700}
+  .ui-card p{color:var(--muted);font-size:clamp(.95rem,1.15vw,1.1rem);line-height:1.4;flex:1}
+  .feel{font-weight:700;font-size:clamp(.9rem,1.1vw,1.05rem);margin-top:.5rem;text-align:center}
+  .wordmark{font-size:clamp(1.8rem,3.6vw,2.8rem);font-weight:800;color:var(--ink);line-height:1.05}
+  .eyrow{letter-spacing:.16em;text-transform:uppercase;font-size:clamp(.78rem,1vw,.95rem);font-weight:700;color:var(--accent)}
+  .priced{font-family:var(--display);font-weight:900;font-size:clamp(2.6rem,5.2vw,3.8rem);color:var(--ink);line-height:1}
+  .priced small{font-size:1.1rem;font-weight:600;color:var(--muted)}
+
+  /* ---------- HUD ---------- */
+  #hud{
+    position:fixed;bottom:0;left:0;right:0;height:8vh;min-height:54px;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 6vw;z-index:40;pointer-events:none;
+  }
+  #hud .left{
+    display:flex;align-items:center;gap:.6rem;
+    color:var(--ink-soft);font-size:clamp(.85rem,1.1vw,1.05rem);font-weight:700;font-family:var(--display);
+  }
+  #hud .left::before{content:"";width:.65rem;height:.65rem;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  #hud .nav{display:flex;gap:.55rem;pointer-events:auto}
+  #hud button{
+    border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;width:44px;height:44px;border-radius:12px;
+    font-size:1.4rem;line-height:1;cursor:pointer;transition:.15s;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #hud button:hover{transform:translateY(-2px);background:var(--accent);border-color:var(--accent);color:#0b0e1a}
+  #counter{
+    position:fixed;bottom:0;right:6vw;height:8vh;min-height:54px;display:flex;align-items:center;
+    font-size:clamp(.85rem,1.1vw,1.05rem);color:var(--muted);font-weight:800;z-index:41;font-family:var(--display);
+  }
+  #counter #cur{color:var(--accent)}
+  .hint{position:fixed;top:16px;right:20px;color:#fff;opacity:.4;font-size:.85rem;z-index:45;font-family:var(--display)}
+
+  @media (max-width:820px){
+    .cols{flex-direction:column;gap:1.1rem}
+    .grid.g3,.grid.g2{grid-template-columns:1fr}
+    .ghost{font-size:7rem}
+  }
+</style>
+
+</head>
+<body>
+<div id="progress"></div>
+<div class="hint">← →</div>
+
+<section class="slide cover">
+  <div class="eyebrow">Módulo 3 · Aula 2</div>
+  <h1>Manipulação do <em>DOM</em></h1>
+  <div class="meta"><span><i class="dot"></i> O que é o DOM e como ele funciona</span><span><i class="dot"></i> Selecionando elementos da página</span><span><i class="dot"></i> Lendo e alterando conteúdo, estilos e classes</span><span><i class="dot"></i> Criando e removendo elementos com JS</span></div>
+</section>
+
+<section class="slide divider">
+  <div class="partnum">01</div>
+  <h2>O que é o DOM</h2>
+  <div class="sub">A ponte entre o HTML e o JavaScript</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 1 · Slide 1</div>
+  <h2 class="title">Do HTML para uma árvore de objetos</h2>
+  <div class="body"><p class="lead">Quando o navegador lê o HTML, ele não guarda só o texto &mdash; ele monta uma <b>árvore de elementos</b> na memória.</p><p class="lead">Essa árvore é o <b>DOM</b>: <i>Document Object Model</i>.</p><div class="big-idea">O <strong>JavaScript</strong> não edita o arquivo <code class="inline">.html</code> &mdash; ele edita essa <b>árvore em memória</b>, e o navegador redesenha a tela na hora.</div></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 1 · Slide 2</div>
+  <h2 class="title">Do código à árvore</h2>
+  <div class="body cols"><div class="col"><p class="lead">Este HTML:</p><pre><span class="pun">&lt;</span>body<span class="pun">&gt;</span>
+  <span class="pun">&lt;</span>header<span class="pun">&gt;</span>
+    <span class="pun">&lt;</span>h1<span class="pun">&gt;</span>Meu site<span class="pun">&lt;</span><span class="pun">/</span>h1<span class="pun">&gt;</span>
+  <span class="pun">&lt;</span><span class="pun">/</span>header<span class="pun">&gt;</span>
+  <span class="pun">&lt;</span>p<span class="pun">&gt;</span>Ol<span class="pun">á</span><span class="pun">!</span><span class="pun">&lt;</span><span class="pun">/</span>p<span class="pun">&gt;</span>
+<span class="pun">&lt;</span><span class="pun">/</span>body<span class="pun">&gt;</span></pre></div><div class="col"><p class="lead">Vira esta árvore de elementos:</p><ul class="bullets"><li><b>body</b></li><li>&nbsp;&nbsp;&#8627; <b>header</b></li><li>&nbsp;&nbsp;&nbsp;&nbsp;&#8627; h1 &mdash; “Meu site”</li><li>&nbsp;&nbsp;&#8627; <b>p</b> &mdash; “Olá!”</li></ul></div></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 1 · Slide 3</div>
+  <h2 class="title">Inspecionando o DOM ao vivo</h2>
+  <div class="body"><p class="lead">Na aba <b>Elements</b> (ou <i>Inspecionar</i>) das DevTools, você vê o DOM <b>em tempo real</b> &mdash; inclusive mudanças feitas por JS.</p><ul class="bullets"><li>O HTML original pode nunca mudar no arquivo</li><li>Mas o DOM na tela pode estar completamente diferente</li><li>Isso acontece o tempo todo em sites modernos (redes sociais, e-commerces...)</li></ul><p class="note">Testar direto no console das DevTools é uma das formas mais rápidas de aprender a manipular o DOM.</p></div>
+</section>
+
+<section class="slide divider">
+  <div class="partnum">02</div>
+  <h2>Selecionando elementos</h2>
+  <div class="sub">Antes de mudar algo, precisamos encontrá-lo</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 2 · Slide 4</div>
+  <h2 class="title">getElementById</h2>
+  <div class="body"><p class="lead">Seleciona <b>um único</b> elemento pelo atributo <code class="inline">id</code>.</p><pre><span class="pun">&lt;</span>h1 id<span class="pun">=</span><span class="str">&quot;titulo&quot;</span><span class="pun">&gt;</span>Ol<span class="pun">á</span><span class="pun">!</span><span class="pun">&lt;</span><span class="pun">/</span>h1<span class="pun">&gt;</span></pre><pre><span class="kw">const</span> titulo <span class="pun">=</span> document<span class="pun">.</span><span class="fn">getElementById</span><span class="pun">(</span><span class="str">&quot;titulo&quot;</span><span class="pun">)</span><span class="pun">;</span>
+console<span class="pun">.</span><span class="fn">log</span><span class="pun">(</span>titulo<span class="pun">)</span><span class="pun">;</span></pre><p class="note">Precisa do <code class="inline">id</code> exato, sem o <code class="inline">#</code> na frente.</p></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 2 · Slide 5</div>
+  <h2 class="title">querySelector</h2>
+  <div class="body"><p class="lead">Seleciona o <b>primeiro</b> elemento que combina com um seletor <b>CSS</b>.</p><pre><span class="kw">const</span> titulo <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;#titulo&quot;</span><span class="pun">)</span><span class="pun">;</span>
+<span class="kw">const</span> primeiroBotao <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;.botao&quot;</span><span class="pun">)</span><span class="pun">;</span>
+<span class="kw">const</span> paragrafo <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;p&quot;</span><span class="pun">)</span><span class="pun">;</span></pre><p class="note">Funciona com qualquer seletor que você já usa em CSS: <code class="inline">#id</code>, <code class="inline">.classe</code>, <code class="inline">tag</code>.</p></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 2 · Slide 6</div>
+  <h2 class="title">querySelectorAll</h2>
+  <div class="body"><p class="lead">Seleciona <b>todos</b> os elementos que combinam com o seletor, numa lista.</p><pre><span class="kw">const</span> botoes <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelectorAll</span><span class="pun">(</span><span class="str">&quot;.botao&quot;</span><span class="pun">)</span><span class="pun">;</span>
+
+botoes<span class="pun">.</span><span class="fn">forEach</span><span class="pun">(</span>botao <span class="pun">=</span><span class="pun">&gt;</span> <span class="pun">{</span>
+  console<span class="pun">.</span><span class="fn">log</span><span class="pun">(</span>botao<span class="pun">)</span><span class="pun">;</span>
+<span class="pun">}</span><span class="pun">)</span><span class="pun">;</span></pre><p class="note">O retorno é uma <b>NodeList</b> &mdash; parecida com array, e já tem o método <code class="inline">forEach</code>.</p></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 2 · Slide 7</div>
+  <h2 class="title">Qual usar?</h2>
+  <div class="body"><div class="grid g3"><div class="card"><h3>getElementById</h3><p>Rápido, mas só funciona com id</p></div><div class="card"><h3>querySelector</h3><p>Um elemento, com qualquer seletor CSS</p></div><div class="card"><h3>querySelectorAll</h3><p>Vários elementos, com qualquer seletor CSS</p></div></div><p class="note">Na prática: <code class="inline">querySelector</code> e <code class="inline">querySelectorAll</code> resolvem quase tudo &mdash; são os mais usados hoje.</p></div>
+</section>
+
+<section class="slide divider">
+  <div class="partnum">03</div>
+  <h2>Lendo e alterando conteúdo</h2>
+  <div class="sub">Fazendo o texto da página responder ao JS</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 3 · Slide 8</div>
+  <h2 class="title">textContent</h2>
+  <div class="body"><p class="lead">Lê ou substitui o <b>texto puro</b> de um elemento.</p><pre><span class="kw">const</span> titulo <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;#titulo&quot;</span><span class="pun">)</span><span class="pun">;</span>
+
+console<span class="pun">.</span><span class="fn">log</span><span class="pun">(</span>titulo<span class="pun">.</span><span class="propacc">textContent</span><span class="pun">)</span><span class="pun">;</span> <span class="com">// lê o texto atual</span>
+titulo<span class="pun">.</span><span class="propacc">textContent</span> <span class="pun">=</span> <span class="str">&quot;Novo título!&quot;</span><span class="pun">;</span> <span class="com">// troca o texto</span></pre></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 3 · Slide 9</div>
+  <h2 class="title">innerHTML</h2>
+  <div class="body"><p class="lead">Parecido com <code class="inline">textContent</code>, mas entende <b>tags HTML</b> dentro do texto.</p><pre><span class="kw">const</span> card <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;.card&quot;</span><span class="pun">)</span><span class="pun">;</span>
+card<span class="pun">.</span><span class="propacc">innerHTML</span> <span class="pun">=</span> <span class="str">&quot;&lt;strong&gt;Promoção!&lt;/strong&gt; Only today.&quot;</span><span class="pun">;</span></pre><div class="big-idea">Cuidado: nunca coloque <strong>texto digitado por outra pessoa</strong> direto no <code class="inline">innerHTML</code> sem tratar &mdash; é uma brecha clássica de segurança.</div></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 3 · Slide 10</div>
+  <h2 class="title">value: lendo campos de formulário</h2>
+  <div class="body"><p class="lead">Inputs não têm “texto dentro” &mdash; eles têm a propriedade <code class="inline">value</code>.</p><pre><span class="pun">&lt;</span>input id<span class="pun">=</span><span class="str">&quot;nome&quot;</span> type<span class="pun">=</span><span class="str">&quot;text&quot;</span><span class="pun">&gt;</span></pre><pre><span class="kw">const</span> campo <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;#nome&quot;</span><span class="pun">)</span><span class="pun">;</span>
+console<span class="pun">.</span><span class="fn">log</span><span class="pun">(</span>campo<span class="pun">.</span><span class="propacc">value</span><span class="pun">)</span><span class="pun">;</span> <span class="com">// o que foi digitado</span>
+campo<span class="pun">.</span><span class="propacc">value</span> <span class="pun">=</span> <span class="str">&quot;Preenchido pelo JS&quot;</span><span class="pun">;</span></pre></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 3 · Slide 11 · Mini prática</div>
+  <h2 class="title">Combinando seleção + conteúdo</h2>
+  <div class="body"><p class="lead">A lógica de quase toda interação em sites segue este padrão:</p><div class="body cols"><div class="col"><ul class="bullets"><li>1. <b>Selecionar</b> o elemento</li><li>2. <b>Ler</b> ou <b>calcular</b> um valor</li></ul></div><div class="col"><ul class="bullets"><li>3. <b>Alterar</b> o conteúdo / estilo</li><li>4. O usuário vê a mudança na hora</li></ul></div></div><pre><span class="kw">const</span> saida <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;#resultado&quot;</span><span class="pun">)</span><span class="pun">;</span>
+saida<span class="pun">.</span><span class="propacc">textContent</span> <span class="pun">=</span> <span class="str">`Você digitou: ${campo.value}`</span><span class="pun">;</span></pre></div>
+</section>
+
+<section class="slide divider">
+  <div class="partnum">04</div>
+  <h2>Estilos e classes via JS</h2>
+  <div class="sub">Mudando a aparência com código</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 4 · Slide 12</div>
+  <h2 class="title">element.style</h2>
+  <div class="body"><p class="lead">Dá pra alterar propriedades CSS diretamente pelo JS.</p><pre><span class="kw">const</span> caixa <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;.caixa&quot;</span><span class="pun">)</span><span class="pun">;</span>
+caixa<span class="pun">.</span><span class="propacc">style</span><span class="pun">.</span><span class="propacc">backgroundColor</span> <span class="pun">=</span> <span class="str">&quot;tomato&quot;</span><span class="pun">;</span>
+caixa<span class="pun">.</span><span class="propacc">style</span><span class="pun">.</span><span class="propacc">padding</span> <span class="pun">=</span> <span class="str">&quot;20px&quot;</span><span class="pun">;</span></pre><p class="note">Propriedades com hífen no CSS (<code class="inline">background-color</code>) viram camelCase no JS (<code class="inline">backgroundColor</code>).</p></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 4 · Slide 13</div>
+  <h2 class="title">Por que preferir classList</h2>
+  <div class="body"><div class="grid g2"><div class="card"><h3>.style direto</h3><p>Bom para 1 ou 2 propriedades pontuais</p></div><div class="card"><h3>classList</h3><p>Ideal para mudanças maiores: liga/desliga um conjunto de estilos já prontos no CSS</p></div></div><div class="big-idea">Boa prática: deixe os <strong>estilos no CSS</strong> (numa classe) e use o <b>JS só para ligar/desligar</b> essa classe.</div></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 4 · Slide 14</div>
+  <h2 class="title">classList: add, remove, toggle</h2>
+  <div class="body"><pre><span class="kw">const</span> caixa <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;.caixa&quot;</span><span class="pun">)</span><span class="pun">;</span>
+
+caixa<span class="pun">.</span><span class="propacc">classList</span><span class="pun">.</span><span class="fn">add</span><span class="pun">(</span><span class="str">&quot;destaque&quot;</span><span class="pun">)</span><span class="pun">;</span>     <span class="com">// adiciona a classe</span>
+caixa<span class="pun">.</span><span class="propacc">classList</span><span class="pun">.</span><span class="fn">remove</span><span class="pun">(</span><span class="str">&quot;destaque&quot;</span><span class="pun">)</span><span class="pun">;</span>  <span class="com">// remove a classe</span>
+caixa<span class="pun">.</span><span class="propacc">classList</span><span class="pun">.</span><span class="fn">toggle</span><span class="pun">(</span><span class="str">&quot;destaque&quot;</span><span class="pun">)</span><span class="pun">;</span>  <span class="com">// alterna: liga se estava desligada, e vice-versa</span></pre></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 4 · Slide 15</div>
+  <h2 class="title">classList.contains</h2>
+  <div class="body"><p class="lead">Verifica se um elemento <b>já tem</b> uma classe &mdash; ótimo para decidir o que fazer.</p><pre><span class="kw">const</span> body <span class="pun">=</span> document<span class="pun">.</span><span class="propacc">body</span><span class="pun">;</span>
+
+<span class="kw">if</span> <span class="pun">(</span>body<span class="pun">.</span><span class="propacc">classList</span><span class="pun">.</span><span class="fn">contains</span><span class="pun">(</span><span class="str">&quot;tema-escuro&quot;</span><span class="pun">)</span><span class="pun">)</span> <span class="pun">{</span>
+  console<span class="pun">.</span><span class="fn">log</span><span class="pun">(</span><span class="str">&quot;O site está no modo escuro&quot;</span><span class="pun">)</span><span class="pun">;</span>
+<span class="pun">}</span> <span class="kw">else</span> <span class="pun">{</span>
+  console<span class="pun">.</span><span class="fn">log</span><span class="pun">(</span><span class="str">&quot;O site está no modo claro&quot;</span><span class="pun">)</span><span class="pun">;</span>
+<span class="pun">}</span></pre><p class="note">Essa é exatamente a lógica por trás de um botão de <b>tema claro/escuro</b>.</p></div>
+</section>
+
+<section class="slide divider">
+  <div class="partnum">05</div>
+  <h2>Criando e removendo elementos</h2>
+  <div class="sub">Gerando HTML novo em tempo real</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 5 · Slide 16</div>
+  <h2 class="title">createElement + appendChild</h2>
+  <div class="body"><p class="lead">Dá pra criar um elemento do <b>zero</b> e encaixá-lo na página.</p><pre><span class="kw">const</span> novoItem <span class="pun">=</span> document<span class="pun">.</span><span class="fn">createElement</span><span class="pun">(</span><span class="str">&quot;li&quot;</span><span class="pun">)</span><span class="pun">;</span>
+novoItem<span class="pun">.</span><span class="propacc">textContent</span> <span class="pun">=</span> <span class="str">&quot;Item novo&quot;</span><span class="pun">;</span>
+
+<span class="kw">const</span> lista <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;#lista&quot;</span><span class="pun">)</span><span class="pun">;</span>
+lista<span class="pun">.</span><span class="fn">appendChild</span><span class="pun">(</span>novoItem<span class="pun">)</span><span class="pun">;</span></pre><p class="note"><code class="inline">appendChild</code> insere o elemento como o <b>último filho</b> do elemento pai.</p></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 5 · Slide 17</div>
+  <h2 class="title">Outras formas de inserir</h2>
+  <div class="body cols"><div class="col"><p class="lead">Inserir como <b>primeiro</b> filho:</p><pre>lista<span class="pun">.</span><span class="fn">prepend</span><span class="pun">(</span>novoItem<span class="pun">)</span><span class="pun">;</span></pre></div><div class="col"><p class="lead">Inserir <b>antes</b> de um elemento específico:</p><pre>lista<span class="pun">.</span><span class="fn">insertBefore</span><span class="pun">(</span>novoItem<span class="pun">,</span> referencia<span class="pun">)</span><span class="pun">;</span></pre></div></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 5 · Slide 18</div>
+  <h2 class="title">Removendo elementos</h2>
+  <div class="body"><p class="lead">Para tirar um elemento da tela de vez:</p><pre><span class="kw">const</span> item <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;.item-antigo&quot;</span><span class="pun">)</span><span class="pun">;</span>
+item<span class="pun">.</span><span class="fn">remove</span><span class="pun">(</span><span class="pun">)</span><span class="pun">;</span></pre><p class="note">Forma antiga (ainda vista por aí): <code class="inline">pai.removeChild(item)</code>. Hoje, <code class="inline">item.remove()</code> é mais direto.</p></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 5 · Slide 19</div>
+  <h2 class="title">Boas práticas</h2>
+  <div class="body"><ul class="bullets"><li>Prefira <code class="inline">textContent</code> a <code class="inline">innerHTML</code> quando for só texto</li><li>Evite recriar elementos demais dentro de loops sem necessidade</li><li>Separe estilo (CSS + classes) de comportamento (JS)</li><li>Sempre confira no console se o elemento foi realmente selecionado antes de alterá-lo</li></ul></div>
+</section>
+
+<section class="slide divider">
+  <div class="partnum">06</div>
+  <h2>Atividade desafiadora</h2>
+  <div class="sub">Transformador de página</div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 6 · Desafio</div>
+  <h2 class="title">Transformador de página</h2>
+  <div class="body"><p class="lead">Pegue um site estático já pronto (o seu, de módulos anteriores, ou um novo simples) e transforme-o num site <b>que reage</b>.</p><div class="big-idea">O desafio: usar <strong>seleção de elementos</strong>, <strong>classes</strong> e <strong>criação de elementos</strong> para mudar a página <b>sem recarregar</b> nada.</div></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 6 · Desafio</div>
+  <h2 class="title">O que o site precisa fazer</h2>
+  <div class="body"><ul class="bullets"><li>Um botão que alterna entre <b>tema claro</b> e <b>tema escuro</b> usando <code class="inline">classList.toggle</code></li><li>Um botão que <b>insere um novo bloco</b> de conteúdo na página (ex: um novo card, um novo item de lista)</li><li>Um botão que <b>remove</b> esse bloco inserido</li><li>Usar <code class="inline">querySelector</code>/<code class="inline">querySelectorAll</code> para toda seleção de elementos</li></ul><p class="note">Capriche no CSS das duas versões de tema &mdash; isso já deve estar pronto antes de mexer no JS.</p></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parte 6 · Desafio</div>
+  <h2 class="title">Esqueleto para começar</h2>
+  <div class="body"><pre><span class="kw">const</span> botaoTema <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;#botao-tema&quot;</span><span class="pun">)</span><span class="pun">;</span>
+<span class="kw">const</span> botaoAdicionar <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;#botao-adicionar&quot;</span><span class="pun">)</span><span class="pun">;</span>
+<span class="kw">const</span> lista <span class="pun">=</span> document<span class="pun">.</span><span class="fn">querySelector</span><span class="pun">(</span><span class="str">&quot;#lista&quot;</span><span class="pun">)</span><span class="pun">;</span>
+
+botaoTema<span class="pun">.</span><span class="fn">addEventListener</span><span class="pun">(</span><span class="str">&quot;click&quot;</span><span class="pun">,</span> <span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span><span class="pun">&gt;</span> <span class="pun">{</span>
+  document<span class="pun">.</span><span class="propacc">body</span><span class="pun">.</span><span class="propacc">classList</span><span class="pun">.</span><span class="fn">toggle</span><span class="pun">(</span><span class="str">&quot;tema-escuro&quot;</span><span class="pun">)</span><span class="pun">;</span>
+<span class="pun">}</span><span class="pun">)</span><span class="pun">;</span>
+
+botaoAdicionar<span class="pun">.</span><span class="fn">addEventListener</span><span class="pun">(</span><span class="str">&quot;click&quot;</span><span class="pun">,</span> <span class="pun">(</span><span class="pun">)</span> <span class="pun">=</span><span class="pun">&gt;</span> <span class="pun">{</span>
+  <span class="kw">const</span> novoItem <span class="pun">=</span> document<span class="pun">.</span><span class="fn">createElement</span><span class="pun">(</span><span class="str">&quot;li&quot;</span><span class="pun">)</span><span class="pun">;</span>
+  novoItem<span class="pun">.</span><span class="propacc">textContent</span> <span class="pun">=</span> <span class="str">&quot;Novo item adicionado!&quot;</span><span class="pun">;</span>
+  lista<span class="pun">.</span><span class="fn">appendChild</span><span class="pun">(</span>novoItem<span class="pun">)</span><span class="pun">;</span>
+<span class="pun">}</span><span class="pun">)</span><span class="pun">;</span></pre><p class="note">Não se preocupe se <code class="inline">addEventListener</code> ainda for novidade &mdash; é exatamente o assunto da próxima aula. Por enquanto, use-o como “receita pronta”.</p></div>
+</section>
+
+<section class="slide cover">
+  <div class="eyebrow">O que aprendemos hoje</div>
+  <h1>O site <em>ganhando</em><br>vida com o DOM</h1>
+  <div class="meta" style="flex-direction:column;gap:.6rem"><span><i class="dot"></i> O DOM é a árvore de elementos que o JS enxerga e manipula</span><span><i class="dot"></i> Selecionar elementos com getElementById, querySelector e querySelectorAll</span><span><i class="dot"></i> Ler e alterar conteúdo, estilos e classes em tempo real</span><span><i class="dot"></i> Criar e remover elementos dinamicamente</span><span><i class="dot"></i> Desafio: transformar um site estático num site que reage</span></div>
+</section>
+<!-- HUD -->
+<div id="hud">
+  <div class="left" id="hud-label">Aula 2 · Manipulação do DOM</div>
+  <div class="nav">
+    <button id="prev" aria-label="Anterior">&lsaquo;</button>
+    <button id="next" aria-label="Pr&oacute;ximo">&rsaquo;</button>
+  </div>
+</div>
+<div id="counter"><span id="cur">1</span>&nbsp;/&nbsp;<span id="total">0</span></div>
+
+<script>
+  const PARTS = {
+    1:{c:'#60a5fa', n:'O que \u00e9 o DOM'},
+    2:{c:'#34d399', n:'Selecionando elementos'},
+    3:{c:'#fbbf24', n:'Lendo e alterando conte\u00fado'},
+    4:{c:'#f472b6', n:'Estilos e classes via JS'},
+    5:{c:'#a78bfa', n:'Criando e removendo elementos'},
+    6:{c:'#4ade80', n:'Atividade desafiadora'}
+  };
+  const BRAND = '#22d3ee';
+
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const progress = document.getElementById('progress');
+  const cur = document.getElementById('cur');
+  const total = document.getElementById('total');
+  const label = document.getElementById('hud-label');
+  total.textContent = slides.length;
+
+  let accent = BRAND, partLabel = 'Aula 2 · Manipulação do DOM';
+  slides.forEach((s, idx)=>{
+    let part = null;
+    if(s.classList.contains('divider')){
+      const t = s.querySelector('.partnum');
+      if(t) part = parseInt(t.textContent, 10);
+    } else if(!s.classList.contains('cover')){
+      const k = s.querySelector('.kicker');
+      const m = k && k.textContent.match(/Parte\s+(\d+)/i);
+      if(m) part = parseInt(m[1], 10);
+    }
+    if(part && PARTS[part]){ accent = PARTS[part].c; partLabel = 'Parte ' + part + ' \u00b7 ' + PARTS[part].n; }
+
+    if(s.classList.contains('cover')){
+      s.style.setProperty('--accent', BRAND);
+      s.dataset.label = 'Aula 2 · Manipulação do DOM';
+      return;
+    }
+    s.style.setProperty('--accent', accent);
+    s.dataset.label = partLabel;
+
+    if(!s.classList.contains('divider')){
+      const g = document.createElement('div');
+      g.className = 'ghost';
+      g.textContent = String(idx + 1).padStart(2, '0');
+      s.appendChild(g);
+    }
+  });
+
+  let i = 0;
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, idx)=> s.classList.toggle('active', idx === i));
+    const s = slides[i];
+    const a = s.style.getPropertyValue('--accent') || BRAND;
+    document.documentElement.style.setProperty('--accent', a);
+    progress.style.width = ((i + 1) / slides.length * 100) + '%';
+    cur.textContent = i + 1;
+    label.textContent = s.dataset.label || 'Aula 2 · Manipulação do DOM';
+  }
+  function next(){ show(i + 1); }
+  function prev(){ show(i - 1); }
+
+  document.getElementById('next').onclick = next;
+  document.getElementById('prev').onclick = prev;
+  document.addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){ e.preventDefault(); next(); }
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); prev(); }
+    else if(e.key==='Home'){ show(0); }
+    else if(e.key==='End'){ show(slides.length - 1); }
+  });
+  let x0 = null;
+  addEventListener('touchstart', e=> x0 = e.touches[0].clientX, {passive:true});
+  addEventListener('touchend', e=>{ if(x0===null) return; const dx = e.changedTouches[0].clientX - x0; if(Math.abs(dx) > 50){ dx < 0 ? next() : prev(); } x0 = null; }, {passive:true});
+
+  show(0);
+</script>
+</body>
+</html>
