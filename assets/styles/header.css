@@ -1,0 +1,83 @@
+header {
+    display: flex;
+    justify-content: space-between;
+
+    background-color: var(--background-color);
+    height: 56px;
+
+    padding: 0 16px;
+}
+
+header > * {
+    display: flex;
+    align-items: center;
+}
+
+header .inicio {
+    display: flex;
+    gap: 16px;
+}
+
+header .inicio .logotipo {
+    display: flex;
+
+    font-size: 1.25rem;
+}
+    
+header .inicio .logotipo-icone {
+    font-size: 1.5rem;
+    color: red;
+}
+
+header .inicio .logotipo-nome {
+    letter-spacing:-1px;
+}
+
+header .inicio .logotipo-pais {
+    font-size: 10px;
+    color: var(--dark-text-color);
+}
+
+header .centro {
+    width: 50%;
+}
+
+header .centro .search {
+    display: flex;
+
+    height: 40px;
+}
+
+header .centro :where(.search-input, .search-button, .search-microphone) {
+    border: solid 1px gray;
+}
+
+header .centro .search-input {
+    font-size: 1rem;
+    
+    width: 100%;
+
+    padding: 0px 16px;
+
+    border-top-left-radius: 40px;
+    border-bottom-left-radius: 40px;
+    border-right: none;
+    
+    outline: none;
+}
+    
+header .centro .search-button {
+    width: 64px;
+    
+    border-top-right-radius: 40px;
+    border-bottom-right-radius: 40px;
+}
+
+header .centro .search-microphone {
+    width: 40px;
+    height: 40px;
+
+    border-radius: 40px;
+
+    margin-left: 12px;
+}

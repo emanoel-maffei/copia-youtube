@@ -3,25 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Youtube</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Biblioteca Font Awesome -->
+    <title>Aprenda CSS em apenas 5 MINUTOS (2026) - YouTube</title>
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="assets/imgs/youtube-logo.ico" type="image/x-icon">
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/styles/style.css">
+    <!-- Biblioteca de ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.0/css/all.min.css" integrity="sha512-ApSLB1Pd3/bZN8fWB/RG9YhN/7bd9Hkf3AGaE2mPfebjrxagjuBtx2GcgdqIlJkUzwylBo61r9Xa9NmgBI0swA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Font Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <header class="cabecalho">
-        <div class="cabecalho-inicio">
-            <span class="fa-solid fa-bars icon"></span>
+    <!-- 
+
+        Link base:
+
+            https://www.youtube.com/watch?v=Pspfs8DzSzU
+
+     -->
+
+    <header>
+        <div class="inicio">
+            <span class="fa-solid fa-bars icon menu"></span>
             
             <div class="logotipo">
                 <span class="fa-brands fa-youtube logotipo-icone icon"></span>
-                <span class="logotipo-nome">Youtube</span>
+                <span class="logotipo-nome">YouTube</span>
                 <span class="logotipo-pais">BR</span>
             </div>
         </div>
         
-        <div class="cabecalho-centro">
+        <div class="centro">
             <div class="search">
                 <input type="text" name="search" class="search-input" placeholder="Pesquisar">
                 <button type="submit" class="search-button">
@@ -33,8 +48,10 @@
             </div>
         </div>
         
-        <div class="cabecalho-final">
-            <!-- A fazer... -->
+        <div class="final">
+            <button class="create">
+                <span class="fa-solid fa-plus"></span>
+            </button>
         </div>
     </header>
 

@@ -1,0 +1,22 @@
+@import url(header.css);
+
+:root {
+    --background-color: #FFFFFF;
+
+    --text-color: #F1F1F1;
+    --dark-text-color: #AAA;
+}
+
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    font-family: "Roboto", Arial, Helvetica, sans-serif;
+}
+
+.icon {
+    font-size: 1.25rem;
+}
