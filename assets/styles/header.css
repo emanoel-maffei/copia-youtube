@@ -20,6 +20,10 @@ header .inicio {
     width: 12%;
 }
 
+header .inicio input[type="checkbox"] {
+    display: none;
+}
+
 header .inicio .menu-button {
     background-color: var(--background-color);
     
