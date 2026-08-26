@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,12 +10,16 @@
     <!-- CSS -->
     <link rel="stylesheet" href="assets/styles/style.css">
     <!-- Biblioteca de ícones Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.0/css/all.min.css" integrity="sha512-ApSLB1Pd3/bZN8fWB/RG9YhN/7bd9Hkf3AGaE2mPfebjrxagjuBtx2GcgdqIlJkUzwylBo61r9Xa9NmgBI0swA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.0/css/all.min.css"
+        integrity="sha512-ApSLB1Pd3/bZN8fWB/RG9YhN/7bd9Hkf3AGaE2mPfebjrxagjuBtx2GcgdqIlJkUzwylBo61r9Xa9NmgBI0swA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Font Roboto -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
 
     <!-- 
@@ -27,34 +32,50 @@
 
     <header>
         <div class="inicio">
-            <span class="fa-solid fa-bars icon menu"></span>
-            
+            <button class="menu-button">
+                <span class="fa-solid fa-bars icon menu"></span>
+            </button>
+
             <div class="logotipo">
                 <span class="fa-brands fa-youtube logotipo-icone icon"></span>
                 <span class="logotipo-nome">YouTube</span>
                 <span class="logotipo-pais">BR</span>
             </div>
         </div>
-        
+
         <div class="centro">
             <div class="search">
                 <input type="text" name="search" class="search-input" placeholder="Pesquisar">
+
                 <button type="submit" class="search-button">
                     <span class="fa-solid fa-magnifying-glass search-button-icon icon"></span>
                 </button>
+
                 <button class="search-microphone">
                     <span class="fa-solid fa-microphone search-microphone-icon icon"></span>
                 </button>
             </div>
         </div>
-        
+
         <div class="final">
-            <button class="create">
-                <span class="fa-solid fa-plus"></span>
+            <button class="create-button">
+                <span class="fa-solid fa-plus icon"></span>
+                <span class="text">Criar</span>
+            </button>
+
+            <button class="notification-button">
+                <span class="fa-regular fa-bell icon"></span>
+                <span class="amount">9+</span>
+            </button>
+
+            <button class="profile-button">
+                <img src="assets/imgs/profile-image.jpg" alt="Imagem de perfil">
+                <span class="fa-regular fa-circle-user icon"></span>
             </button>
         </div>
     </header>
 
     <script src="script.js"></script>
 </body>
+
 </html>

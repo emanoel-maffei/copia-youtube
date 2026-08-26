@@ -2,9 +2,19 @@
 
 :root {
     --background-color: #FFFFFF;
-
+    
     --text-color: #F1F1F1;
-    --dark-text-color: #AAA;
+    --dark-text-color: #606060;
+    
+    --button-background-color: #F2F2F2;
+    --selected-button-background-color: #E5E5E5;
+
+    --border-color: #C6C6C6;
+    --focus-border-color: #1C62B9;
+
+    --white-color: #F1F1F1;
+    --black-color: #0F0F0F;
+    --red-color: #E1002D;
 }
 
 * {
@@ -19,4 +29,28 @@ body {
 
 .icon {
     font-size: 1.25rem;
+}
+
+input {
+    outline: none;
+}
+
+input {
+    background-color: var(--background-color);
+    border: solid 1px var(--border-color);
+}
+
+input:focus {
+    border: solid 1px var(--focus-border-color);
+}
+
+button {
+    background-color: var(--button-background-color);
+    border: none;
+    cursor: pointer;
+}
+
+button:hover,
+button:focus {
+    background-color: var(--selected-button-background-color);
 }
