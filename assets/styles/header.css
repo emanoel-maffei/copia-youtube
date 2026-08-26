@@ -1,4 +1,6 @@
 header {
+    position: relative;
+
     display: flex;
     justify-content: space-between;
 
@@ -17,14 +19,14 @@ header .inicio {
     display: flex;
     gap: 16px;
 
-    width: 12%;
+    min-width: 12%;
 }
 
 header .inicio input[type="checkbox"] {
     display: none;
 }
 
-header .inicio .menu-button {
+header :where(.inicio, .menu .inicio) .menu-button {
     background-color: var(--background-color);
     
     padding: 8px;
@@ -33,12 +35,12 @@ header .inicio .menu-button {
     border-radius: 40px;
 }
 
-header .inicio .menu-button:hover,
-header .inicio .menu-button:focus {
+header :where(.inicio, .menu .inicio) .menu-button:hover,
+header :where(.inicio, .menu .inicio) .menu-button:focus {
     background-color: var(--selected-button-background-color);
 }
 
-header .inicio .logotipo {
+header :where(.inicio, .menu .inicio) .logotipo {
     display: flex;
     align-items: center;
 
@@ -46,18 +48,17 @@ header .inicio .logotipo {
     font-weight: bold;
 }
 
-header .inicio .logotipo-icone {
+header :where(.inicio, .menu .inicio) .logotipo-icone {
     font-size: 1.75rem;
     color: red;
 }
 
-header .inicio .logotipo-nome {
-    align-self: flex-end;
-
+header :where(.inicio, .menu .inicio) .logotipo-nome {
+    transform: translateY(2px);
     letter-spacing: -1.2px;
 }
 
-header .inicio .logotipo-pais {
+header :where(.inicio, .menu .inicio) .logotipo-pais {
     align-self: flex-start;
     
     font-size: 10px;
@@ -208,4 +209,56 @@ header .final .profile-button img {
     width: 100%;
 
     border-radius: inherit;
+}
+
+header .menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    
+    display: none;
+    background-color: var(--background-color);
+
+    height: 100vh;
+    width: 260px;
+
+    z-index: 1;
+}
+
+header .menu .inicio {
+    padding: 8px 16px;
+}
+
+header .menu-contrast {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    display: none;
+    
+    backdrop-filter: brightness(0.5);
+    width: 100vw;
+    height: 100vh;
+
+    z-index: 0;
+} 
+
+header:has(.inicio input[type="checkbox"]:checked) .menu-contrast {
+    display: block;
+}
+
+header:has(.inicio input[type="checkbox"]:checked) .menu {
+    display: block;
+
+    animation: menu-fade-in 0.25s ease forwards;
+}
+
+@keyframes menu-fade-in {
+    from {
+        left: -100%;
+    }
+    
+    to {
+        left: 0%;
+    }
 }
