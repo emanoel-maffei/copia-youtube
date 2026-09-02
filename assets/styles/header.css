@@ -180,6 +180,8 @@ header .final .notification-button .amount {
 }
 
 header .final .profile-button {
+    flex-shrink: 0;
+    
     background-color: var(--background-color);
     width: 32px;
     height: 32px;
