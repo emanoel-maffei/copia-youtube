@@ -28,9 +28,9 @@ header .inicio input[type="checkbox"] {
 
 header :where(.inicio, .menu .inicio) .menu-button {
     background-color: var(--background-color);
-    
+
     padding: 8px;
-    
+
     border: none;
     border-radius: 40px;
 }
@@ -60,10 +60,10 @@ header :where(.inicio, .menu .inicio) .logotipo-nome {
 
 header :where(.inicio, .menu .inicio) .logotipo-pais {
     align-self: flex-start;
-    
+
     font-size: 10px;
     font-weight: 400;
-    
+
     color: var(--dark-text-color);
 }
 
@@ -115,7 +115,7 @@ header .centro .search-microphone {
 header .final {
     display: flex;
     gap: 1rem;
-    
+
     max-width: 15%;
 }
 
@@ -215,12 +215,12 @@ header .menu {
     position: absolute;
     top: 0;
     left: 0;
-    
+
     display: none;
     background-color: var(--background-color);
 
     height: 100vh;
-    width: 260px;
+    width: 240px;
 
     z-index: 1;
 }
@@ -229,19 +229,69 @@ header .menu .inicio {
     padding: 8px 16px;
 }
 
+header .menu .centro {
+    width: 100%;
+    padding: 0;
+
+    overflow-y: auto;
+}
+
+header .menu .centro nav {
+    width: 100%;
+}
+
+header .menu .centro nav h3 {
+    font-size: 1rem;
+    font-weight: 500;
+
+    height: 32px;
+
+    padding: 6px 12px 4px;
+}
+
+header .menu .centro ul {
+    list-style: none;
+    padding: 12px;
+}
+
+header .menu .centro ul a {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+
+    height: 40px;
+    color: var(--black-color);
+    text-decoration: none;
+
+    padding: 0 12px;
+
+    border-radius: 10px;
+}
+
+header .menu .centro ul a:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+header .menu .centro hr {
+    background-color: rgba(0,0,0,0.2);
+    height: 1px;
+    border: none;
+}
+
+
 header .menu-contrast {
     position: absolute;
     top: 0;
     left: 0;
 
     display: none;
-    
+
     backdrop-filter: brightness(0.5);
     width: 100vw;
     height: 100vh;
 
     z-index: 0;
-} 
+}
 
 header:has(.inicio input[type="checkbox"]:checked) .menu-contrast {
     display: block;
@@ -257,7 +307,7 @@ header:has(.inicio input[type="checkbox"]:checked) .menu {
     from {
         left: -100%;
     }
-    
+
     to {
         left: 0%;
     }
